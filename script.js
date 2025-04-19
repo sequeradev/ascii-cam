@@ -1,80 +1,112 @@
-// — Constantes & elementos —
-const video    = document.getElementById('video');
-const ascii    = document.getElementById('ascii');
-const startBtn = document.getElementById('start');
-const resRng   = document.getElementById('res');
-const greenBtn = document.getElementById('green');
-const snapBtn  = document.getElementById('snap');
+// — elementos del DOM —
+const video   = document.getElementById('video');
+const ascii   = document.getElementById('ascii');
+const startBt = document.getElementById('start');
+const resRng  = document.getElementById('res');
+const greenBt = document.getElementById('green');
+const snapBt  = document.getElementById('snap');
 
-const CHARSET = "@#S%?*+;:,. ";
+// — constantes —
+const CHARS = "@#S%?*+;:,. ";
 
-let sampleW = parseInt(resRng.value, 10);
-let sampleH = Math.round(sampleW * 9 / 16);
-let greenMode = false;
+// — estado inicial —
+let w = parseInt(resRng.value, 10);
+let h = Math.round(w * 9 / 16);
+let green = false;
 
-// — Función para arrancar la cámara (en user gesture) —
-async function startCamera() {
+// — detección iOS para el botón —
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+// — función de init que pide permisos y espera a play() —
+async function initCamera() {
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: { aspectRatio: 16/9 } });
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { aspectRatio: 16/9 }
+    });
     video.srcObject = stream;
-    video.style.display = 'none';        // ocultamos video
-    startBtn.style.display = 'none';     // quitamos el botón
-    ascii.style.display = 'block';       // mostramos el ASCII
-    loop();                              // arrancamos bucle
+    // Espera a que empiece realmente a reproducirse:
+    await new Promise(resolve => {
+      const check = () => {
+        if (video.readyState >= 2) {
+          video.removeEventListener('playing', check);
+          return resolve();
+        }
+      };
+      video.addEventListener('playing', check);
+      video.play().catch(resolve);
+    });
+
+    // Muestra ASCII, oculta botón y arranca loop
+    ascii.style.display = 'block';
+    startBt.style.display = 'none';
+    updateFont();
+    loopASCII();
   } catch (err) {
     alert("No se pudo acceder a la cámara:\n" + err);
   }
 }
 
-// — Bucle principal de dibujo —
-function loop() {
+// — bucle ASCII separado —
+function loopASCII() {
   const canvas = document.createElement('canvas');
   const ctx    = canvas.getContext('2d', { willReadFrequently: true });
-  canvas.width  = sampleW;
-  canvas.height = sampleH;
+  canvas.width  = w;
+  canvas.height = h;
 
-  // efecto espejo fijo
-  ctx.save();
-  ctx.translate(sampleW, 0);
-  ctx.scale(-1, 1);
-  ctx.drawImage(video, 0, 0, sampleW, sampleH);
-  ctx.restore();
+  function frame() {
+    // espejo
+    ctx.save();
+    ctx.translate(w, 0);
+    ctx.scale(-1, 1);
+    ctx.drawImage(video, 0, 0, w, h);
+    ctx.restore();
 
-  const data = ctx.getImageData(0, 0, sampleW, sampleH).data;
-  let out = '';
-  for (let i = 0; i < data.length; i += 4) {
-    const avg = (data[i] + data[i+1] + data[i+2]) / 3;
-    out += CHARSET[Math.floor(avg / 255 * (CHARSET.length - 1))];
-    if ((i/4 + 1) % sampleW === 0) out += '\n';
+    // lectura píxeles
+    const data = ctx.getImageData(0, 0, w, h).data;
+    let out = '';
+    for (let i = 0; i < data.length; i += 4) {
+      const avg = (data[i] + data[i+1] + data[i+2]) / 3;
+      out += CHARS[Math.floor(avg / 255 * (CHARS.length - 1))];
+      if (((i/4)+1) % w === 0) out += '\n';
+    }
+    ascii.textContent = out;
+    requestAnimationFrame(frame);
   }
-  ascii.textContent = out;
-  requestAnimationFrame(loop);
+
+  frame();
 }
 
-// — Control de resolución sin cambiar área visual —
+// — recalcular font-size para mantener ancho visual —
+function updateFont() {
+  const charWidth = w * 0.6;
+  const targetW   = Math.min(window.innerWidth * 0.9, 960);
+  const fs        = targetW / charWidth;
+  ascii.style.fontSize   = fs + 'px';
+  ascii.style.lineHeight = fs + 'px';
+}
+
+// — manejadores de controles —
 resRng.addEventListener('input', () => {
-  sampleW = parseInt(resRng.value,10);
-  sampleH = Math.round(sampleW * 9 / 16);
-  // calcular font-size para mantener constante ancho visual ~ sampleW*charWidth
-  const charWidth = sampleW * 0.6; // aproximado
-  const fontSize = (window.innerWidth * 0.9) / charWidth; 
-  ascii.style.fontSize   = fontSize + 'px';
-  ascii.style.lineHeight = fontSize + 'px';
+  w = parseInt(resRng.value, 10);
+  h = Math.round(w * 9 / 16);
+  updateFont();
 });
 
-// — Modo Matrix verde/blanco —
-greenBtn.addEventListener('click', () => {
-  greenMode = !greenMode;
-  ascii.style.color = greenMode ? '#0f0' : '#fff';
-  greenBtn.textContent = greenMode ? 'White Mode' : 'Green Mode';
+greenBt.addEventListener('click', () => {
+  green = !green;
+  ascii.style.color = green ? '#0f0' : '#fff';
+  greenBt.textContent = green ? 'White Mode' : 'Green Mode';
 });
 
-// — Copiar snapshot —
-snapBtn.addEventListener('click', async () => {
+snapBt.addEventListener('click', async () => {
   await navigator.clipboard.writeText(ascii.textContent);
-  snapBtn.textContent = "✓ Copied!";
-  setTimeout(() => snapBtn.textContent = "Copy Snapshot", 1000);
+  snapBt.textContent = "✓ Copied!";
+  setTimeout(() => snapBt.textContent = "Copy Snapshot", 1000);
 });
 
-// — Evento de click para iniciar cámara —
-startBtn.addEventListener('click', startCamera);
+// — arranque automático vs botón —
+if (isIOS) {
+  startBt.addEventListener('click', initCamera);
+} else {
+  window.addEventListener('load', initCamera);
+}
