@@ -1,6 +1,6 @@
 :root {
   --bg: #000;
-  --panel: rgba(0,0,0,0.6);
+  --panel: rgba(0, 0, 0, 0.6);
   --txt: #fff;
   --accent: #0f0;
   --font: 'DotGothic16', monospace;
@@ -19,9 +19,12 @@ html, body {
   font-family: var(--font);
   display: grid;
   grid-template-rows: auto 1fr auto;
+
+  /* 🚫 Impide cualquier scroll */
+  overflow: hidden;
 }
 
-/* —— HEADER & CONTROLS —— */
+/* —— HEADER —— */
 header {
   backdrop-filter: blur(8px);
   background: var(--panel);
@@ -40,7 +43,7 @@ header {
   text-shadow: 0 0 4px var(--accent);
 }
 
-/* Controles */
+/* —— CONTROLS —— */
 #controls {
   display: flex;
   gap: 12px;
@@ -54,58 +57,64 @@ header {
   width: 120px;
 }
 
-/* Botones desktop */
+/* Botones desktop también blancos ahora */
 #controls button {
-  background: var(--panel);
+  background: #fff;
   border: 2px solid var(--accent);
   border-radius: 4px;
   padding: 8px 12px;
-  color: var(--txt);
+  color: #000;
   cursor: pointer;
   transition: transform 0.15s, background 0.15s;
 }
 #controls button:hover {
-  background: rgba(255,255,255,0.1);
+  background: var(--accent);
+  color: #000;
   transform: scale(1.05);
 }
 
 /* —— MAIN —— */
 main {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  padding: 16px 0;
+  /* ❌ Saca el padding para aprovechar el espacio al máximo */
 }
 
-/* Start‐button iOS */
+/* Start-button (iOS) */
 #start {
-  background: var(--panel);
+  background: #fff;
+  color: #000;
   border: 2px solid var(--accent);
   border-radius: 4px;
-  color: var(--txt);
   font-size: 18px;
   padding: 10px 20px;
   cursor: pointer;
-  margin-bottom: 16px;
+  margin: 16px 0;
   transition: transform 0.15s, background 0.15s;
 }
 #start:hover {
-  background: rgba(255,255,255,0.1);
+  background: var(--accent);
   transform: scale(1.05);
 }
 
-/* Oculta video, muestra ASCII */
-video { display: none; }
-#ascii {
+/* El vídeo oculto */
+video {
   display: none;
-  white-space: pre;
+}
+
+/* —— ASCII BLOCK —— */
+#ascii {
+  display: none;             /* aparece tras iniciar cámara */
+  white-space: pre;          
   user-select: none;
   text-shadow: 0 0 2px rgba(255,255,255,0.5);
-  max-width: 90vw;
-  max-height: 70vh;
-  overflow: auto;
+  /* siempre ocupa TODO el ancho de la pantalla */
+  width: 100vw;
+  /* y la altura restante entre header/footer */
+  height: calc(100vh - 2.5rem - 2.5rem); /* ajusta 2.5rem = header + footer */
+  overflow: hidden;          /* sin scroll interno */
   line-height: 1;
 }
 
@@ -125,52 +134,38 @@ footer a {
 /* —— FLICKER —— */
 @keyframes flicker {
   0%,100% { opacity:1; }
-  50% { opacity:0.85; text-shadow: 0 0 8px var(--accent); }
+  50%     { opacity:0.85; text-shadow:0 0 8px var(--accent); }
 }
 #title {
   animation: flicker 3s infinite;
 }
 
-/* ===== RESPOND to MOBILE (portrait) ===== */
-@media (max-width: 600px) {
+/* ===== Responsive portrait mobile ===== */
+@media (max-width:600px) {
   header {
     flex-direction: column;
     gap: 12px;
     padding: 16px 8px;
   }
-
   #controls {
     flex-direction: column;
     gap: 16px;
     width: 100%;
   }
-  #controls label, #controls button, #controls input[type="range"] {
+  #controls input[type="range"] {
     width: 90%;
-    margin: 0 auto;
   }
-  #controls label { font-size: 18px; }
-
   #controls button {
-    background: #fff;
-    color: #000;
-    border: 2px solid var(--accent);
-    border-radius: 2px;
+    width: 90%;
+    font-size: 18px;
+    text-align: center;
   }
-  #controls button:hover {
-    background: var(--accent);
-    color: #000;
-  }
-
   #start {
-    background: #fff;
-    color: #000;
-    border: 2px solid var(--accent);
-    width: 80%;
+    width: 90%;
     font-size: 20px;
   }
-
   #ascii {
-    max-height: 60vh;
-    font-size: 12px;     /* un poco más grande para móvil */
+    /* ocupa hasta abajo sin scroll */
+    height: calc(100vh - 4.5rem); /* header más footer más start-btn */
   }
 }
