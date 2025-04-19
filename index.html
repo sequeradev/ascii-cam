@@ -2,13 +2,15 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <!-- Meta para móvil -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta 
+    name="viewport" 
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0" 
+  />
   <title>ASCII Cam Matrix</title>
-  
-  <!-- Fuente estilo “Nothing” -->
-  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet" />
+  <link 
+    href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" 
+    rel="stylesheet" 
+  />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -16,21 +18,27 @@
   <header>
     <h1 id="title">ASCII CAM</h1>
     <div id="controls">
-      <label>Resolution <input id="res" type="range" min="80" max="240" step="20" value="240" /></label>
+      <label>Resolution 
+        <input id="res" type="range" min="80" max="240" step="20" value="160" />
+      </label>
       <button id="green">Green Mode</button>
       <button id="snap">Copy Snapshot</button>
     </div>
   </header>
 
   <main>
-    <!-- Botón inicial para iOS -->
-    <button id="start">Start Camera</button>
+    <button id="start">Start Camera</button>
     <video id="video" autoplay muted playsinline></video>
     <pre id="ascii"></pre>
   </main>
 
   <footer>
-    <small>Created by <a href="https://github.com/monolitro" target="_blank">monolitro</a></small>
+    <small>
+      Created by 
+      <a href="https://github.com/monolitro" target="_blank">
+        monolitro
+      </a>
+    </small>
   </footer>
 
   <script src="script.js"></script>

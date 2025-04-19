@@ -1,4 +1,4 @@
-// — elementos del DOM —
+// — Elementos DOM —
 const video   = document.getElementById('video');
 const ascii   = document.getElementById('ascii');
 const startBt = document.getElementById('start');
@@ -6,47 +6,45 @@ const resRng  = document.getElementById('res');
 const greenBt = document.getElementById('green');
 const snapBt  = document.getElementById('snap');
 
-// — constantes —
+// — Constantes y estado —
 const CHARS = "@#S%?*+;:,. ";
-
-// — estado inicial —
 let w = parseInt(resRng.value, 10);
 let h = Math.round(w * 9 / 16);
 let green = false;
 
-// — detección iOS para el botón —
-const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+// — Detectar móvil/iOS —
+const isIOS    = /iPad|iPhone|iPod/.test(navigator.userAgent);
+const isMobile = /Mobi|Android/i.test(navigator.userAgent);
 
-// — función de init que pide permisos y espera a play() —
+// — Pide cámara y espera a playing() —
 async function initCamera() {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({
       video: { aspectRatio: 16/9 }
     });
     video.srcObject = stream;
-    // Espera a que empiece realmente a reproducirse:
-    await new Promise(resolve => {
-      const check = () => {
-        if (video.readyState >= 2) {
-          video.removeEventListener('playing', check);
-          return resolve();
-        }
+
+    // Espera real a que el vídeo empiece
+    await new Promise(res => {
+      const onPlay = () => {
+        video.removeEventListener('playing', onPlay);
+        res();
       };
-      video.addEventListener('playing', check);
-      video.play().catch(resolve);
+      video.addEventListener('playing', onPlay);
+      video.play().catch(res);
     });
 
-    // Muestra ASCII, oculta botón y arranca loop
+    // Mostrar ASCII y ocultar botón
     ascii.style.display = 'block';
-    startBt.style.display = 'none';
+    if (startBt) startBt.style.display = 'none';
     updateFont();
     loopASCII();
   } catch (err) {
-    alert("No se pudo acceder a la cámara:\n" + err);
+    alert("Error al acceder a cámara:\n" + err);
   }
 }
 
-// — bucle ASCII separado —
+// — Bucle de renderizado ASCII —
 function loopASCII() {
   const canvas = document.createElement('canvas');
   const ctx    = canvas.getContext('2d', { willReadFrequently: true });
@@ -54,38 +52,37 @@ function loopASCII() {
   canvas.height = h;
 
   function frame() {
-    // espejo
     ctx.save();
     ctx.translate(w, 0);
     ctx.scale(-1, 1);
     ctx.drawImage(video, 0, 0, w, h);
     ctx.restore();
 
-    // lectura píxeles
-    const data = ctx.getImageData(0, 0, w, h).data;
+    const pixels = ctx.getImageData(0, 0, w, h).data;
     let out = '';
-    for (let i = 0; i < data.length; i += 4) {
-      const avg = (data[i] + data[i+1] + data[i+2]) / 3;
+    for (let i = 0; i < pixels.length; i += 4) {
+      const avg = (pixels[i] + pixels[i+1] + pixels[i+2]) / 3;
       out += CHARS[Math.floor(avg / 255 * (CHARS.length - 1))];
-      if (((i/4)+1) % w === 0) out += '\n';
+      if (((i/4) + 1) % w === 0) out += '\n';
     }
     ascii.textContent = out;
     requestAnimationFrame(frame);
   }
-
   frame();
 }
 
-// — recalcular font-size para mantener ancho visual —
+// — Mantener ancho visual recalculando font-size —
 function updateFont() {
+  // ancho de caracteres * 0.6 ≈ px/caracter
   const charWidth = w * 0.6;
+  // limitamos el ancho a 960px o 90% de pantalla
   const targetW   = Math.min(window.innerWidth * 0.9, 960);
   const fs        = targetW / charWidth;
   ascii.style.fontSize   = fs + 'px';
   ascii.style.lineHeight = fs + 'px';
 }
 
-// — manejadores de controles —
+// — Handlers UI —
 resRng.addEventListener('input', () => {
   w = parseInt(resRng.value, 10);
   h = Math.round(w * 9 / 16);
@@ -95,18 +92,20 @@ resRng.addEventListener('input', () => {
 greenBt.addEventListener('click', () => {
   green = !green;
   ascii.style.color = green ? '#0f0' : '#fff';
-  greenBt.textContent = green ? 'White Mode' : 'Green Mode';
+  greenBt.textContent = green ? 'White Mode' : 'Green Mode';
 });
 
 snapBt.addEventListener('click', async () => {
   await navigator.clipboard.writeText(ascii.textContent);
   snapBt.textContent = "✓ Copied!";
-  setTimeout(() => snapBt.textContent = "Copy Snapshot", 1000);
+  setTimeout(() => snapBt.textContent = "Copy Snapshot", 1000);
 });
 
-// — arranque automático vs botón —
-if (isIOS) {
+// — Arranque: botón en móvil, auto en desktop —
+if (isIOS || isMobile) {
+  // en móvil mostramos el botón Start
   startBt.addEventListener('click', initCamera);
 } else {
+  // en desktop arranca automáticamente
   window.addEventListener('load', initCamera);
 }
