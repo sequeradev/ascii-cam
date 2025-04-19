@@ -68,22 +68,19 @@ function loopASCII() {
     ascii.textContent = out;
     requestAnimationFrame(frame);
   }
+
   frame();
 }
 
 // — Mantener ancho visual recalculando font-size —
 function updateFont() {
-  -  const charWidth = w * 0.6;
-  -  const targetW   = Math.min(window.innerWidth * 0.9, 960);
-  -  const fs        = targetW / charWidth;
-  +  // Calcula el ancho real del contenedor ASCII
-  +  const containerW = document.getElementById('ascii').clientWidth;
-  +  // Distribuye containerW entre w caracteres de ancho
-  +  const fs = containerW / w;
-     ascii.style.fontSize   = fs + 'px';
-     ascii.style.lineHeight = fs + 'px';
-  }
-  
+  // Calcula el ancho real del contenedor ASCII
+  const containerW = ascii.clientWidth;
+  // Distribuye containerW entre w caracteres de ancho
+  const fs = containerW / w;
+  ascii.style.fontSize   = fs + 'px';
+  ascii.style.lineHeight = fs + 'px';
+}
 
 // — Handlers UI —
 resRng.addEventListener('input', () => {
@@ -95,20 +92,18 @@ resRng.addEventListener('input', () => {
 greenBt.addEventListener('click', () => {
   green = !green;
   ascii.style.color = green ? '#0f0' : '#fff';
-  greenBt.textContent = green ? 'White Mode' : 'Green Mode';
+  greenBt.textContent = green ? 'White Mode' : 'Green Mode';
 });
 
 snapBt.addEventListener('click', async () => {
   await navigator.clipboard.writeText(ascii.textContent);
   snapBt.textContent = "✓ Copied!";
-  setTimeout(() => snapBt.textContent = "Copy Snapshot", 1000);
+  setTimeout(() => snapBt.textContent = "Copy Snapshot", 1000);
 });
 
 // — Arranque: botón en móvil, auto en desktop —
 if (isIOS || isMobile) {
-  // en móvil mostramos el botón Start
   startBt.addEventListener('click', initCamera);
 } else {
-  // en desktop arranca automáticamente
   window.addEventListener('load', initCamera);
 }
