@@ -17,24 +17,21 @@ html, body {
   background: var(--bg);
   color: var(--txt);
   font-family: var(--font);
+
+  /* No scroll en toda la página */
+  overflow: hidden;
+
   display: grid;
   grid-template-rows: auto 1fr auto;
-
-  /* 🚫 Impide cualquier scroll */
-  overflow: hidden;
 }
 
-/* —— HEADER —— */
+/* ——— HEADER ——— */
 header {
   backdrop-filter: blur(8px);
   background: var(--panel);
   padding: 12px 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  position: sticky;
-  top: 0;
-  z-index: 10;
+  position: sticky; top: 0; z-index: 10;
+  display: flex; align-items: center; justify-content: space-between;
 }
 
 #title {
@@ -43,21 +40,16 @@ header {
   text-shadow: 0 0 4px var(--accent);
 }
 
-/* —— CONTROLS —— */
+/* ——— CONTROLS ——— */
 #controls {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  font-size: 16px;
+  display: flex; gap: 12px; align-items: center; font-size: 16px;
 }
 
-/* Slider */
 #controls input[type="range"] {
   accent-color: var(--accent);
   width: 120px;
 }
 
-/* Botones desktop también blancos ahora */
 #controls button {
   background: #fff;
   border: 2px solid var(--accent);
@@ -65,60 +57,58 @@ header {
   padding: 8px 12px;
   color: #000;
   cursor: pointer;
-  transition: transform 0.15s, background 0.15s;
+  transition: transform .15s, background .15s;
 }
 #controls button:hover {
   background: var(--accent);
-  color: #000;
   transform: scale(1.05);
 }
 
-/* —— MAIN —— */
+/* ——— MAIN ——— */
 main {
-  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* ❌ Saca el padding para aprovechar el espacio al máximo */
+  /* hacemos que todo el espacio disponible se use en column */
+  justify-content: space-between;
+  padding: 0 8px;
 }
 
-/* Start-button (iOS) */
+/* iOS Start-button */
 #start {
   background: #fff;
-  color: #000;
   border: 2px solid var(--accent);
   border-radius: 4px;
   font-size: 18px;
   padding: 10px 20px;
   cursor: pointer;
-  margin: 16px 0;
-  transition: transform 0.15s, background 0.15s;
+  transition: transform .15s, background .15s;
 }
 #start:hover {
   background: var(--accent);
   transform: scale(1.05);
 }
 
-/* El vídeo oculto */
-video {
-  display: none;
-}
+/* vídeo oculto */
+video { display: none; }
 
-/* —— ASCII BLOCK —— */
+/* bloque ASCII, ocupa TODO el ancho, y altura hasta el footer */
 #ascii {
-  display: none;             /* aparece tras iniciar cámara */
-  white-space: pre;          
+  display: none;              /* se muestra tras initCamera() */
+  white-space: pre;
   user-select: none;
-  text-shadow: 0 0 2px rgba(255,255,255,0.5);
-  /* siempre ocupa TODO el ancho de la pantalla */
+  text-shadow: 0 0 2px rgba(255,255,255,.5);
+
+  /* ancho y alto responsivos */
   width: 100vw;
-  /* y la altura restante entre header/footer */
-  height: calc(100vh - 2.5rem - 2.5rem); /* ajusta 2.5rem = header + footer */
-  overflow: hidden;          /* sin scroll interno */
+  height: calc(100vh - (2.5rem + 2.5rem + 3rem)); 
+  /* 2.5rem aprox header + footer, 3rem aprox controles */
+  
+  overflow: hidden;           /* sin scroll */
   line-height: 1;
 }
 
-/* —— FOOTER —— */
+/* ——— FOOTER ——— */
 footer {
   backdrop-filter: blur(8px);
   background: var(--panel);
@@ -126,27 +116,29 @@ footer {
   text-align: center;
   font-size: 12px;
 }
+
 footer a {
   color: var(--accent);
   text-decoration: none;
 }
 
-/* —— FLICKER —— */
+/* ——— FLICKER ——— */
 @keyframes flicker {
-  0%,100% { opacity:1; }
-  50%     { opacity:0.85; text-shadow:0 0 8px var(--accent); }
+  0%,100% { opacity: 1; }
+  50%     { opacity: .85; text-shadow: 0 0 8px var(--accent); }
 }
 #title {
   animation: flicker 3s infinite;
 }
 
-/* ===== Responsive portrait mobile ===== */
-@media (max-width:600px) {
+/* ===== VERTICAL MOBILE LAYOUT ===== */
+@media (max-width: 600px) {
   header {
     flex-direction: column;
     gap: 12px;
     padding: 16px 8px;
   }
+
   #controls {
     flex-direction: column;
     gap: 16px;
@@ -160,12 +152,22 @@ footer a {
     font-size: 18px;
     text-align: center;
   }
+
   #start {
     width: 90%;
     font-size: 20px;
+    margin: 16px 0;
   }
+
   #ascii {
-    /* ocupa hasta abajo sin scroll */
-    height: calc(100vh - 4.5rem); /* header más footer más start-btn */
+    /* ocupa desde justo debajo del start/control hasta el footer */
+    height: calc(
+      100vh
+      - ( /* header */ clamp(2rem, 8vw, 3rem)
+          + /* controles */ 3.5rem
+          + /* footer */ 2.5rem
+      )
+    );
+    overflow: hidden;
   }
 }
