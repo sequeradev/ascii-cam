@@ -74,13 +74,12 @@ function loopASCII() {
 
 // — Mantener ancho visual recalculando font-size —
 function updateFont() {
-  // Calcula el ancho real del contenedor ASCII
-  const containerW = ascii.clientWidth;
-  // Distribuye containerW entre w caracteres de ancho
-  const fs = containerW / w;
+  const containerW = ascii.clientWidth;      // ancho real
+  const fs = Math.min(containerW / w, 14);   // 14px máx para no desbordar
   ascii.style.fontSize   = fs + 'px';
   ascii.style.lineHeight = fs + 'px';
 }
+
 
 // — Handlers UI —
 resRng.addEventListener('input', () => {
