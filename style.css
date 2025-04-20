@@ -1,4 +1,4 @@
-:root {
+:root{
   --bg:#000;
   --panel:rgba(0,0,0,.6);
   --txt:#fff;
@@ -15,7 +15,7 @@ html,body{
   font-family:var(--font);
   display:grid;
   grid-template-rows:auto 1fr auto;
-  overflow:hidden;                /* 🚫 sin scroll global */
+  overflow:hidden;                    /* 🚫 sin scroll global */
 }
 
 /* —— HEADER —— */
@@ -23,77 +23,71 @@ header{
   backdrop-filter:blur(8px);
   background:var(--panel);
   padding:12px 16px;
-  display:flex;align-items:center;justify-content:space-between;
-  position:sticky;top:0;z-index:10;
+  display:flex;justify-content:center;align-items:center;
 }
 #title{
-  letter-spacing:2px;font-size:clamp(24px,5vw,36px);
-  text-shadow:0 0 4px var(--accent);animation:flicker 3s infinite;
+  font-size:clamp(28px,6vw,48px);
+  letter-spacing:2px;
+  text-shadow:0 0 6px var(--accent);
+  animation:flicker 3s infinite;
 }
-@keyframes flicker{0%,100%{opacity:1}50%{opacity:.85;text-shadow:0 0 8px var(--accent)}}
-
-/* —— CONTROLS —— */
-#controls{display:flex;gap:12px;align-items:center;font-size:16px}
-#controls input[type=range]{accent-color:var(--accent);width:120px}
-.btn{
-  background:#fff;border:2px solid var(--accent);border-radius:4px;
-  padding:8px 12px;color:#000;cursor:pointer;transition:.15s;
-}
-.btn:hover{background:var(--accent);transform:scale(1.05)}
+@keyframes flicker{0%,100%{opacity:1}50%{opacity:.85;text-shadow:0 0 10px var(--accent)}}
 
 /* —— MAIN —— */
 main{
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+  height:100%; /* para que flex calcule bien */
 }
-#start{
-  background:#fff;
-  border:2px solid var(--accent);
-  border-radius:4px;
-  color:#000;
-  cursor:pointer;
-  padding:8px 12px;
 
-  font-size:20px;
-  margin-bottom:16px;
-
-  transition:transform .15s, background .15s;
+/* controles */
+#controls{
+  display:flex;gap:16px;align-items:center;margin:16px 0;
+  flex-wrap:wrap;justify-content:center;
 }
-#start:hover{
-  background:var(--accent);
-  transform:scale(1.05);
+#controls input[type=range]{accent-color:var(--accent);width:140px}
+.btn{
+  background:#fff;border:2px solid var(--accent);border-radius:4px;
+  color:#000;padding:10px 18px;font-size:18px;cursor:pointer;
+  transition:.15s;
 }
-video{display:none}
+.btn:hover{background:var(--accent);transform:scale(1.05)}
+#green{min-width:140px}
+#snap {min-width:160px}
 
-/* ASCII centrado */
+/* ASCII wrapper centra horizontal/vertical */
+#asciiWrapper{
+  flex:1;                             /* ocupa todo el espacio disponible */
+  width:100%;
+  display:flex;justify-content:center;align-items:center;
+  overflow:hidden;
+}
 #ascii{
-  display:none;white-space:pre;user-select:none;text-shadow:0 0 2px rgba(255,255,255,.5);
-  margin:auto;                       /* centra horizontal y vertical */
-  max-width:960px;min-width:320px;   /* límites */
-  width:90vw;                        /* desktop < 960px usa 90% */
-  height:calc(100vh - 200px);        /* espacio entre header y footer aprox */
-  overflow:auto;                     /* se puede copiar texto largo */
-  line-height:1;
+  display:none;white-space:pre;user-select:none;line-height:1;
+  text-shadow:0 0 2px rgba(255,255,255,.5);
+  max-width:960px;min-width:320px;width:90vw;height:auto;
 }
+
+/* start‑button iOS (centrado debajo controles) */
+#start{display:none;margin-bottom:8px;width:90%}
+
+/* video oculto */
+video{display:none}
 
 /* —— FOOTER —— */
 footer{
   backdrop-filter:blur(8px);
   background:var(--panel);
-  padding:8px;
   text-align:center;
-  font-size:14px;
+  padding:12px 8px;
+  font-size:18px;                     /* más grande */
 }
 footer a{color:var(--accent);text-decoration:none}
 
 /* —— MOBILE PORTRAIT —— */
 @media(max-width:600px){
-  header{flex-direction:column;gap:12px;padding:16px 8px}
-  #controls{flex-direction:column;gap:16px;width:100%}
-  #controls input[type=range],.btn{width:90%}
-  #controls label{width:90%;font-size:18px}
-  #ascii{
-    width:90vw;max-width:90vw;
-    height:calc(100vh - 260px);     /* header+controles+footer */
-  }
-  footer{font-size:16px;margin-top:8px}
+  #controls{flex-direction:column;gap:12px}
+  #controls input[type=range]{width:90%}
+  .btn{width:90%}
+  #ascii{width:90vw;max-width:90vw}
+  #start{display:block}               /* solo visible en iOS JS lo alterna */
 }
