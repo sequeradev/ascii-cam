@@ -1,14 +1,19 @@
 const video = document.getElementById('video');
 const ascii = document.getElementById('ascii');
 const startBt = document.getElementById('start');
-const resRng = document.getElementById('res');
-const resValue = document.getElementById('resValue');
+const resLowBt = document.getElementById('resLow');
+const resMedBt = document.getElementById('resMed');
+const resHighBt = document.getElementById('resHigh');
 const greenBt = document.getElementById('green');
 const snapBt = document.getElementById('snap');
 
 const CHARS = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'. ";
 
-let w = parseInt(resRng.value, 10);
+const RES_LOW = 50;
+const RES_MED = 90;
+const RES_HIGH = 160;
+
+let w = RES_MED;
 let h = Math.round(w * 9 / 16);
 let green = true;
 let canvasWidth = w;
@@ -102,14 +107,25 @@ function updateAsciiSize() {
   ascii.style.lineHeight = fontSize + 'px';
 }
 
-resRng.addEventListener('input', () => {
-  w = parseInt(resRng.value, 10);
+function setResolution(width) {
+  w = width;
   h = Math.round(w * 9 / 16);
   canvasWidth = w;
   canvasHeight = h;
-  resValue.textContent = w;
   updateAsciiSize();
-});
+
+  resLowBt.classList.remove('active');
+  resMedBt.classList.remove('active');
+  resHighBt.classList.remove('active');
+
+  if (width === RES_LOW) resLowBt.classList.add('active');
+  else if (width === RES_MED) resMedBt.classList.add('active');
+  else if (width === RES_HIGH) resHighBt.classList.add('active');
+}
+
+resLowBt.addEventListener('click', () => setResolution(RES_LOW));
+resMedBt.addEventListener('click', () => setResolution(RES_MED));
+resHighBt.addEventListener('click', () => setResolution(RES_HIGH));
 
 greenBt.addEventListener('click', () => {
   green = !green;
