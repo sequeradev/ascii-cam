@@ -43,10 +43,12 @@ async function initCamera() {
       video.play().catch(resolve);
     });
 
+    ascii.classList.add('active');
     ascii.style.display = 'block';
     startBt.style.display = 'none';
     updateAsciiSize();
     loopASCII();
+    setTimeout(() => animateScanline(), 500);
   } catch (err) {
     alert("Camera access error:\n" + err.message);
   }
@@ -76,6 +78,7 @@ function loopASCII() {
     }
 
     ascii.textContent = out;
+    applyMatrixEffect();
     requestAnimationFrame(render);
   };
 
@@ -84,17 +87,26 @@ function loopASCII() {
 
 function updateAsciiSize() {
   const wrapper = document.getElementById('asciiWrapper');
-  const availableWidth = wrapper.clientWidth;
-  const availableHeight = wrapper.clientHeight;
+  const wrapperWidth = wrapper.clientWidth;
+  const wrapperHeight = wrapper.clientHeight;
 
-  const charWidth = availableWidth / canvasWidth;
-  const charHeight = availableHeight / canvasHeight;
+  const charAspectRatio = 0.6;
 
-  const fontSize = Math.min(charWidth, charHeight);
-  const clampedSize = Math.max(4, Math.min(fontSize, 20));
+  const fontSizeByWidth = wrapperWidth / (canvasWidth * charAspectRatio);
+  const fontSizeByHeight = wrapperHeight / canvasHeight;
 
-  ascii.style.fontSize = clampedSize + 'px';
-  ascii.style.lineHeight = clampedSize + 'px';
+  let fontSize = Math.min(fontSizeByWidth, fontSizeByHeight) * 0.95;
+  fontSize = Math.max(3, Math.min(fontSize, 20));
+
+  ascii.style.fontSize = fontSize + 'px';
+  ascii.style.lineHeight = fontSize + 'px';
+
+  const textWidth = canvasWidth * fontSize * charAspectRatio;
+  const textHeight = canvasHeight * fontSize;
+
+  ascii.style.width = textWidth + 'px';
+  ascii.style.height = textHeight + 'px';
+  ascii.style.margin = 'auto';
 }
 
 resRng.addEventListener('input', () => {
@@ -143,8 +155,61 @@ snapBt.addEventListener('click', async () => {
   }
 });
 
+let matrixRainActive = false;
+let raindrops = [];
+
+function applyMatrixEffect() {
+  if (!matrixRainActive) return;
+
+  const lines = ascii.textContent.split('\n');
+  if (lines.length < 2) return;
+
+  if (raindrops.length === 0 || Math.random() > 0.7) {
+    const col = Math.floor(Math.random() * canvasWidth);
+    raindrops.push({ col, row: 0, length: Math.floor(Math.random() * 10) + 5 });
+  }
+
+  raindrops = raindrops.filter(drop => drop.row < canvasHeight + drop.length);
+  raindrops.forEach(drop => drop.row++);
+}
+
+let scanlinePos = 0;
+let scanlineDirection = 1;
+
+function animateScanline() {
+  if (!ascii.style.display || ascii.style.display === 'none') return;
+
+  scanlinePos += scanlineDirection * 2;
+
+  if (scanlinePos >= 100) scanlineDirection = -1;
+  if (scanlinePos <= 0) scanlineDirection = 1;
+
+  ascii.style.backgroundImage = `linear-gradient(180deg, transparent ${scanlinePos}%, rgba(0,255,0,0.03) ${scanlinePos + 1}%, transparent ${scanlinePos + 2}%)`;
+
+  requestAnimationFrame(animateScanline);
+}
+
 window.addEventListener('resize', () => {
   if (ascii.style.display !== 'none') {
     updateAsciiSize();
   }
 });
+
+function triggerGlitch() {
+  ascii.style.animation = 'flicker-text 0.15s infinite, glitch 0.3s';
+  setTimeout(() => {
+    ascii.style.animation = 'flicker-text 0.15s infinite';
+  }, 300);
+}
+
+setInterval(() => {
+  if (ascii.classList.contains('active') && Math.random() > 0.7) {
+    triggerGlitch();
+  }
+}, 3000);
+
+setTimeout(() => {
+  if (ascii.style.display !== 'none') {
+    animateScanline();
+  }
+}, 1000);
