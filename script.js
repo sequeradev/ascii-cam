@@ -13,38 +13,45 @@ const RES_LOW = 50;
 const RES_MED = 90;
 const RES_HIGH = 160;
 
-// Usamos la resolución MEDIUM como base para el cálculo de tamaño
-const BASE_WIDTH  = RES_MED;
+// Base resolution used to calculate the font size. Using the medium
+// resolution as our reference allows us to keep the perceived size
+// of the ASCII art consistent across different resolutions. When
+// switching resolutions the ASCII art will be scaled relative to
+// this base.
+const BASE_WIDTH = RES_MED;
 const BASE_HEIGHT = Math.round(BASE_WIDTH * 9 / 16);
 
 let w = RES_MED;
 let h = Math.round(w * 9 / 16);
 let green = true;
-let canvasWidth  = w;
+let canvasWidth = w;
 let canvasHeight = h;
 
-const isIOS   = /iPad|iPhone|iPod/.test(navigator.userAgent);
-const isMobile = /Mobi|Android/i.test(navigator.userAgent);
-
-// En móviles mostramos el botón START, en escritorio arrancamos automáticamente
-if (isIOS || isMobile) {
-  startBt.classList.add('visible');
-  startBt.addEventListener('click', initCamera);
-} else {
-  window.addEventListener('load', initCamera);
-}
+/*
+ * Always require a user gesture to start the camera.
+ * On many mobile browsers (especially iOS/Safari) camera access
+ * will fail unless it is triggered by a user interaction. Previously
+ * we attempted to auto‑detect mobile devices and automatically
+ * initialise the camera on desktop, but this caused confusion when
+ * the user agent string did not match expectations or the Start
+ * button wasn't visible. To simplify the behaviour, we now always
+ * expose the START button and only initialise the camera when
+ * the user clicks it. This approach avoids relying on user‑agent
+ * detection and ensures consistent behaviour across platforms.
+ */
+startBt.classList.add('visible');
+startBt.addEventListener('click', initCamera);
 
 async function initCamera() {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({
       video: {
         facingMode: 'user',
-        aspectRatio: 16 / 9
+        aspectRatio: 16/9
       }
     });
     video.srcObject = stream;
 
-    // Esperamos a que el vídeo empiece a reproducirse
     await new Promise(resolve => {
       const onPlay = () => {
         video.removeEventListener('playing', onPlay);
@@ -57,7 +64,6 @@ async function initCamera() {
     ascii.classList.add('active');
     ascii.style.display = 'block';
     startBt.style.display = 'none';
-
     updateAsciiSize();
     loopASCII();
     setTimeout(() => animateScanline(), 500);
@@ -69,10 +75,20 @@ async function initCamera() {
 function loopASCII() {
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
-  canvas.width  = canvasWidth;
+  canvas.width = canvasWidth;
   canvas.height = canvasHeight;
 
   const render = () => {
+    // If the resolution has changed, resize the canvas on the fly. Without
+    // this check the canvas retains its original dimensions, causing the
+    // ASCII art to shrink or grow when switching resolutions. By
+    // synchronizing the canvas size with `canvasWidth`/`canvasHeight` each
+    // frame we ensure the sampled video matches the desired resolution.
+    if (canvas.width !== canvasWidth || canvas.height !== canvasHeight) {
+      canvas.width = canvasWidth;
+      canvas.height = canvasHeight;
+    }
+
     ctx.save();
     ctx.translate(canvasWidth, 0);
     ctx.scale(-1, 1);
@@ -84,7 +100,7 @@ function loopASCII() {
 
     for (let i = 0; i < pix.length; i += 4) {
       const brightness = (pix[i] + pix[i + 1] + pix[i + 2]) / 3;
-      const charIndex  = Math.floor((brightness / 255) * (CHARS.length - 1));
+      const charIndex = Math.floor((brightness / 255) * (CHARS.length - 1));
       out += CHARS[charIndex];
       if (((i / 4) + 1) % canvasWidth === 0) out += '\n';
     }
@@ -99,34 +115,52 @@ function loopASCII() {
 
 function updateAsciiSize() {
   const wrapper = document.getElementById('asciiWrapper');
-
-  // Usamos el 95% del área disponible para evitar que toque los bordes
-  const wrapperWidth  = wrapper.clientWidth  * 0.95;
+  // Reserve a small margin inside the wrapper so the art doesn't
+  // touch the edges on mobile devices. We use 0.9 multiplier to
+  // provide breathing room.
+  // Use the majority of the available width/height for the ASCII art.
+  // Slightly reduce the dimensions (95%) to prevent the art touching
+  // the very edges of the viewport which can look cramped on small
+  // devices.
+  const wrapperWidth = wrapper.clientWidth * 0.95;
   const wrapperHeight = wrapper.clientHeight * 0.95;
 
-  // Relación aproximada ancho/alto de la fuente VT323
+  // Approximate width-to-height ratio of characters in the VT323
+  // font. This is used to convert character counts into pixel
+  // dimensions.
   const charAspectRatio = 0.6;
 
-  // Cálculo del tamaño de fuente en función de la resolución base
-  const fontSizeByWidth  = wrapperWidth  / (BASE_WIDTH  * charAspectRatio);
-  const fontSizeByHeight = wrapperHeight / BASE_HEIGHT;
+  // Calculate font size based on the **current** resolution rather than a
+  // fixed base. We divide the available width by the number of
+  // characters in a row (canvasWidth) and the character aspect ratio
+  // to determine how wide each character can be. Similarly we divide
+  // the available height by the number of rows (canvasHeight). Taking
+  // the minimum of these values ensures the ASCII art fits within
+  // both dimensions without overflowing.
+  const fontSizeByWidth = wrapperWidth / (canvasWidth * charAspectRatio);
+  const fontSizeByHeight = wrapperHeight / canvasHeight;
 
   let fontSize = Math.min(fontSizeByWidth, fontSizeByHeight);
-  // Limitamos la fuente: mínima 4px, máxima 60px
+  // Prevent the font size from becoming too small or too large.
+  // On mobile devices we allow the font to grow larger to fill the
+  // available space. A cap of 60px avoids excessively large text on
+  // desktop screens.
   fontSize = Math.max(4, Math.min(fontSize, 60));
 
   ascii.style.fontSize = fontSize + 'px';
   ascii.style.lineHeight = fontSize + 'px';
 
-  // Factor de escala para mantener el tamaño visual al cambiar la resolución
-  const scaleFactor = BASE_WIDTH / canvasWidth;
-  ascii.style.transform = `translate(-50%, -50%) scale(${scaleFactor})`;
+  // No additional scaling is required. By basing the font size on
+  // canvasWidth and canvasHeight we ensure the ASCII art maintains
+  // consistent physical dimensions across resolutions. We only
+  // translate the element to centre it within the wrapper.
+  ascii.style.transform = 'translate(-50%, -50%)';
 }
 
 function setResolution(width) {
   w = width;
   h = Math.round(w * 9 / 16);
-  canvasWidth  = w;
+  canvasWidth = w;
   canvasHeight = h;
   updateAsciiSize();
 
@@ -139,12 +173,10 @@ function setResolution(width) {
   else if (width === RES_HIGH) resHighBt.classList.add('active');
 }
 
-// Asociamos los botones a sus resoluciones
-resLowBt.addEventListener('click',  () => setResolution(RES_LOW));
+resLowBt.addEventListener('click', () => setResolution(RES_LOW));
 resMedBt.addEventListener('click', () => setResolution(RES_MED));
-resHighBt.addEventListener('click',() => setResolution(RES_HIGH));
+resHighBt.addEventListener('click', () => setResolution(RES_HIGH));
 
-// Cambiar color (Matrix / Blanco)
 greenBt.addEventListener('click', () => {
   green = !green;
   if (green) {
@@ -156,9 +188,9 @@ greenBt.addEventListener('click', () => {
   }
 });
 
-// Copiar el ASCII al portapapeles
 snapBt.addEventListener('click', async () => {
   const asciiText = ascii.textContent;
+
   const formattedText = '```\n' + asciiText + '\n```';
 
   try {
@@ -182,9 +214,9 @@ snapBt.addEventListener('click', async () => {
   }
 });
 
-// Efecto Matrix opcional
 let matrixRainActive = false;
 let raindrops = [];
+
 function applyMatrixEffect() {
   if (!matrixRainActive) return;
 
@@ -200,36 +232,35 @@ function applyMatrixEffect() {
   raindrops.forEach(drop => drop.row++);
 }
 
-// Línea de escaneo verde
 let scanlinePos = 0;
 let scanlineDirection = 1;
+
 function animateScanline() {
   if (!ascii.style.display || ascii.style.display === 'none') return;
 
   scanlinePos += scanlineDirection * 2;
-  if (scanlinePos >= 100) scanlineDirection = -1;
-  if (scanlinePos <= 0)  scanlineDirection = 1;
 
-  ascii.style.backgroundImage =
-    `linear-gradient(180deg, transparent ${scanlinePos}%, rgba(0,255,0,0.03) ${scanlinePos + 1}%, transparent ${scanlinePos + 2}%)`;
+  if (scanlinePos >= 100) scanlineDirection = -1;
+  if (scanlinePos <= 0) scanlineDirection = 1;
+
+  ascii.style.backgroundImage = `linear-gradient(180deg, transparent ${scanlinePos}%, rgba(0,255,0,0.03) ${scanlinePos + 1}%, transparent ${scanlinePos + 2}%)`;
 
   requestAnimationFrame(animateScanline);
 }
 
-// Recalcular dimensiones al cambiar el tamaño de ventana
 window.addEventListener('resize', () => {
   if (ascii.style.display !== 'none') {
     updateAsciiSize();
   }
 });
 
-// Efecto glitch aleatorio
 function triggerGlitch() {
   ascii.style.animation = 'flicker-text 0.15s infinite, glitch 0.3s';
   setTimeout(() => {
     ascii.style.animation = 'flicker-text 0.15s infinite';
   }, 300);
 }
+
 setInterval(() => {
   if (ascii.classList.contains('active') && Math.random() > 0.7) {
     triggerGlitch();
