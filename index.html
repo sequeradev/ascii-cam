@@ -13,14 +13,16 @@
     <h1 id="title">ASCII_CAM</h1>
   </header>
 
-  <!-- El contenido principal se reparte en dos filas: área de la cámara y botones -->
   <main>
     <div id="asciiWrapper">
       <pre id="ascii"></pre>
     </div>
 
     <div id="controls">
-      <button id="start" class="btn start-btn">START</button>
+      <!-- The start button is visible by default so users on all devices
+           can explicitly grant camera access. A user gesture is required
+           for getUserMedia() on most mobile browsers. -->
+      <button id="start" class="btn start-btn visible">START</button>
 
       <div class="control-group">
         <label class="control-label">RESOLUTION</label>
@@ -41,7 +43,7 @@
   </main>
 
   <footer>
-    <a href="https://github.com/sequeradev" target="_blank">@sequeradev</a>
+    <a href="https://github.com/monolitro" target="_blank">@monolitro</a>
   </footer>
 
   <script src="script.js"></script>
