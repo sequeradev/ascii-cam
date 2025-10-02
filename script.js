@@ -13,6 +13,14 @@ const RES_LOW = 50;
 const RES_MED = 90;
 const RES_HIGH = 160;
 
+// Base resolution used to calculate the font size. Using the medium
+// resolution as our reference allows us to keep the perceived size
+// of the ASCII art consistent across different resolutions. When
+// switching resolutions the ASCII art will be scaled relative to
+// this base.
+const BASE_WIDTH = RES_MED;
+const BASE_HEIGHT = Math.round(BASE_WIDTH * 9 / 16);
+
 let w = RES_MED;
 let h = Math.round(w * 9 / 16);
 let green = true;
@@ -92,19 +100,50 @@ function loopASCII() {
 
 function updateAsciiSize() {
   const wrapper = document.getElementById('asciiWrapper');
-  const wrapperWidth = wrapper.clientWidth * 0.9;
-  const wrapperHeight = wrapper.clientHeight * 0.9;
+  // Reserve a small margin inside the wrapper so the art doesn't
+  // touch the edges on mobile devices. We use 0.9 multiplier to
+  // provide breathing room.
+  // Use the majority of the available width/height for the ASCII art.
+  // Slightly reduce the dimensions (95%) to prevent the art touching
+  // the very edges of the viewport which can look cramped on small
+  // devices.
+  const wrapperWidth = wrapper.clientWidth * 0.95;
+  const wrapperHeight = wrapper.clientHeight * 0.95;
 
+  // Approximate width-to-height ratio of characters in the VT323
+  // font. This is used to convert character counts into pixel
+  // dimensions.
   const charAspectRatio = 0.6;
 
-  const fontSizeByWidth = wrapperWidth / (canvasWidth * charAspectRatio);
-  const fontSizeByHeight = wrapperHeight / canvasHeight;
+  // Calculate font size based on our base resolution rather than the
+  // current resolution. This keeps the physical size of the ASCII
+  // art consistent when switching between resolutions. We compute
+  // separate sizes based on width and height and choose the smaller
+  // one so that the art fits in both dimensions.
+  const fontSizeByWidth = wrapperWidth / (BASE_WIDTH * charAspectRatio);
+  const fontSizeByHeight = wrapperHeight / BASE_HEIGHT;
 
   let fontSize = Math.min(fontSizeByWidth, fontSizeByHeight);
-  fontSize = Math.max(1, Math.min(fontSize, 30));
+  // Prevent the font size from becoming too small or too large.
+  // On mobile devices we allow the font to grow larger to fill the
+  // available space. A cap of 60px avoids excessively large text on
+  // desktop screens.
+  fontSize = Math.max(4, Math.min(fontSize, 60));
 
   ascii.style.fontSize = fontSize + 'px';
   ascii.style.lineHeight = fontSize + 'px';
+
+  // Compute a scale factor to maintain consistent visual size across
+  // different canvas widths. A larger canvas (higher resolution)
+  // produces more characters per row; to preserve the overall
+  // dimensions of the art we scale it down by the ratio of the base
+  // resolution to the current resolution. For lower resolutions the
+  // art will be scaled up accordingly.
+  const scaleFactor = BASE_WIDTH / canvasWidth;
+  // Apply the translation and scale. The translation keeps the art
+  // centred in the wrapper; scaleFactor uniformly scales both
+  // width and height.
+  ascii.style.transform = `translate(-50%, -50%) scale(${scaleFactor})`;
 }
 
 function setResolution(width) {
