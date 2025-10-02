@@ -25,6 +25,7 @@ html, body {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Cabecera con título */
 header {
   background: var(--panel);
   padding: 12px 16px;
@@ -50,48 +51,26 @@ header {
   }
 }
 
+/* Contenedor principal como grid: una fila crece (cámara) y la otra es fija (botones) */
 main {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  /* Use flex-start so the ascii area can grow naturally while
-     controls sit at the bottom when space allows. Removing
-     space-between prevents large gaps on mobile screens */
-  justify-content: flex-start;
+  display: grid;
+  grid-template-rows: 1fr auto;
   height: 100%;
-  padding: 16px 8px 8px 8px;
-  gap: 16px;
-}
-
-/*
- * The ascii wrapper is a flexible container that fills the remaining
- * vertical space between the header, controls and footer. We set
- * `position: relative` so that its child (#ascii) can be absolutely
- * positioned for precise centering and scaling. Setting a fixed
- * height ensures the wrapper grows to consume available space on
- * mobile devices without causing overflow that would require
- * scrolling.
- */
-#asciiWrapper {
-  flex: 1;
   width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  overflow: hidden;
-  position: relative;
-  min-height: 0;
+  padding: 0;
+  gap: 0;
 }
 
-/*
- * The ascii element contains the generated ASCII art. We position it
- * absolutely at the centre of its wrapper and use a transform to
- * translate it by 50% of its own width/height so that scaling
- * originates from the centre. `transform-origin: top left` keeps
- * subsequent scale transformations consistent. Initially hidden until
- * the camera is active.
- */
+/* Contenedor del ASCII ocupa todo el espacio disponible */
+#asciiWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Ajustes para el elemento pre con el arte ASCII */
 #ascii {
   position: absolute;
   top: 50%;
@@ -112,6 +91,7 @@ main {
   display: inline-block;
 }
 
+/* Pequeño efecto de parpadeo */
 @keyframes flicker-text {
   0%, 100% {
     opacity: 1;
@@ -121,27 +101,17 @@ main {
   }
 }
 
+/* Efecto glitch opcional */
 @keyframes glitch {
-  0% {
-    transform: translate(0);
-  }
-  20% {
-    transform: translate(-2px, 2px);
-  }
-  40% {
-    transform: translate(-2px, -2px);
-  }
-  60% {
-    transform: translate(2px, 2px);
-  }
-  80% {
-    transform: translate(2px, -2px);
-  }
-  100% {
-    transform: translate(0);
-  }
+  0% { transform: translate(0); }
+  20% { transform: translate(-2px, 2px); }
+  40% { transform: translate(-2px, -2px); }
+  60% { transform: translate(2px, 2px); }
+  80% { transform: translate(2px, -2px); }
+  100% { transform: translate(0); }
 }
 
+/* Botonera */
 #controls {
   width: 100%;
   max-width: 500px;
@@ -152,11 +122,7 @@ main {
   flex-direction: column;
   gap: 12px;
   box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
-
-  /* Push the controls to the bottom of the page when there is
-     extra vertical space. This gives the ASCII area priority and
-     helps utilise full screen height on mobile devices. */
-  margin-top: auto;
+  margin: 0 auto;
 }
 
 .control-group {
@@ -201,12 +167,14 @@ main {
   font-weight: bold;
 }
 
+/* Botones inferiores en cuadrícula */
 .control-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
 }
 
+/* Estilo común de botones */
 .btn {
   background: var(--bg);
   border: 2px solid var(--border);
@@ -232,6 +200,7 @@ main {
   transform: translateY(0);
 }
 
+/* Botón de inicio oculto hasta que se necesita en móviles */
 .start-btn {
   width: 100%;
   font-size: 22px;
@@ -243,10 +212,12 @@ main {
   display: block;
 }
 
+/* Ocultamos el vídeo HTML de la cámara porque sólo usamos su flujo para leer píxeles */
 video {
   display: none;
 }
 
+/* Pie de página */
 footer {
   background: var(--panel);
   text-align: center;
@@ -266,38 +237,18 @@ footer a:hover {
   text-shadow: 0 0 8px var(--accent);
 }
 
+/* Ajustes menores en pantallas pequeñas */
 @media (max-width: 600px) {
-  main {
-    padding: 12px 8px 8px 8px;
-    gap: 12px;
-  }
-
   #controls {
     max-width: 100%;
     padding: 12px;
   }
-
   .btn {
     font-size: 16px;
     padding: 10px 16px;
   }
-
   #title {
     font-size: clamp(20px, 8vw, 32px);
     letter-spacing: 2px;
-  }
-}
-
-@media (max-width: 400px) {
-  #controls {
-    padding: 10px;
-  }
-
-  .control-label {
-    font-size: 16px;
-  }
-
-  .value-display {
-    font-size: 18px;
   }
 }
