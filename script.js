@@ -13,23 +13,20 @@ const RES_LOW = 50;
 const RES_MED = 90;
 const RES_HIGH = 160;
 
-// Base resolution used to calculate the font size. Using the medium
-// resolution as our reference allows us to keep the perceived size
-// of the ASCII art consistent across different resolutions. When
-// switching resolutions the ASCII art will be scaled relative to
-// this base.
-const BASE_WIDTH = RES_MED;
+// Usamos la resolución MEDIUM como base para el cálculo de tamaño
+const BASE_WIDTH  = RES_MED;
 const BASE_HEIGHT = Math.round(BASE_WIDTH * 9 / 16);
 
 let w = RES_MED;
 let h = Math.round(w * 9 / 16);
 let green = true;
-let canvasWidth = w;
+let canvasWidth  = w;
 let canvasHeight = h;
 
-const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+const isIOS   = /iPad|iPhone|iPod/.test(navigator.userAgent);
 const isMobile = /Mobi|Android/i.test(navigator.userAgent);
 
+// En móviles mostramos el botón START, en escritorio arrancamos automáticamente
 if (isIOS || isMobile) {
   startBt.classList.add('visible');
   startBt.addEventListener('click', initCamera);
@@ -42,11 +39,12 @@ async function initCamera() {
     const stream = await navigator.mediaDevices.getUserMedia({
       video: {
         facingMode: 'user',
-        aspectRatio: 16/9
+        aspectRatio: 16 / 9
       }
     });
     video.srcObject = stream;
 
+    // Esperamos a que el vídeo empiece a reproducirse
     await new Promise(resolve => {
       const onPlay = () => {
         video.removeEventListener('playing', onPlay);
@@ -59,6 +57,7 @@ async function initCamera() {
     ascii.classList.add('active');
     ascii.style.display = 'block';
     startBt.style.display = 'none';
+
     updateAsciiSize();
     loopASCII();
     setTimeout(() => animateScanline(), 500);
@@ -70,7 +69,7 @@ async function initCamera() {
 function loopASCII() {
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
-  canvas.width = canvasWidth;
+  canvas.width  = canvasWidth;
   canvas.height = canvasHeight;
 
   const render = () => {
@@ -85,7 +84,7 @@ function loopASCII() {
 
     for (let i = 0; i < pix.length; i += 4) {
       const brightness = (pix[i] + pix[i + 1] + pix[i + 2]) / 3;
-      const charIndex = Math.floor((brightness / 255) * (CHARS.length - 1));
+      const charIndex  = Math.floor((brightness / 255) * (CHARS.length - 1));
       out += CHARS[charIndex];
       if (((i / 4) + 1) % canvasWidth === 0) out += '\n';
     }
@@ -100,56 +99,34 @@ function loopASCII() {
 
 function updateAsciiSize() {
   const wrapper = document.getElementById('asciiWrapper');
-  // Reserve a small margin inside the wrapper so the art doesn't
-  // touch the edges on mobile devices. We use 0.9 multiplier to
-  // provide breathing room.
-  // Use the majority of the available width/height for the ASCII art.
-  // Slightly reduce the dimensions (95%) to prevent the art touching
-  // the very edges of the viewport which can look cramped on small
-  // devices.
-  const wrapperWidth = wrapper.clientWidth * 0.95;
+
+  // Usamos el 95% del área disponible para evitar que toque los bordes
+  const wrapperWidth  = wrapper.clientWidth  * 0.95;
   const wrapperHeight = wrapper.clientHeight * 0.95;
 
-  // Approximate width-to-height ratio of characters in the VT323
-  // font. This is used to convert character counts into pixel
-  // dimensions.
+  // Relación aproximada ancho/alto de la fuente VT323
   const charAspectRatio = 0.6;
 
-  // Calculate font size based on our base resolution rather than the
-  // current resolution. This keeps the physical size of the ASCII
-  // art consistent when switching between resolutions. We compute
-  // separate sizes based on width and height and choose the smaller
-  // one so that the art fits in both dimensions.
-  const fontSizeByWidth = wrapperWidth / (BASE_WIDTH * charAspectRatio);
+  // Cálculo del tamaño de fuente en función de la resolución base
+  const fontSizeByWidth  = wrapperWidth  / (BASE_WIDTH  * charAspectRatio);
   const fontSizeByHeight = wrapperHeight / BASE_HEIGHT;
 
   let fontSize = Math.min(fontSizeByWidth, fontSizeByHeight);
-  // Prevent the font size from becoming too small or too large.
-  // On mobile devices we allow the font to grow larger to fill the
-  // available space. A cap of 60px avoids excessively large text on
-  // desktop screens.
+  // Limitamos la fuente: mínima 4px, máxima 60px
   fontSize = Math.max(4, Math.min(fontSize, 60));
 
   ascii.style.fontSize = fontSize + 'px';
   ascii.style.lineHeight = fontSize + 'px';
 
-  // Compute a scale factor to maintain consistent visual size across
-  // different canvas widths. A larger canvas (higher resolution)
-  // produces more characters per row; to preserve the overall
-  // dimensions of the art we scale it down by the ratio of the base
-  // resolution to the current resolution. For lower resolutions the
-  // art will be scaled up accordingly.
+  // Factor de escala para mantener el tamaño visual al cambiar la resolución
   const scaleFactor = BASE_WIDTH / canvasWidth;
-  // Apply the translation and scale. The translation keeps the art
-  // centred in the wrapper; scaleFactor uniformly scales both
-  // width and height.
   ascii.style.transform = `translate(-50%, -50%) scale(${scaleFactor})`;
 }
 
 function setResolution(width) {
   w = width;
   h = Math.round(w * 9 / 16);
-  canvasWidth = w;
+  canvasWidth  = w;
   canvasHeight = h;
   updateAsciiSize();
 
@@ -162,10 +139,12 @@ function setResolution(width) {
   else if (width === RES_HIGH) resHighBt.classList.add('active');
 }
 
-resLowBt.addEventListener('click', () => setResolution(RES_LOW));
+// Asociamos los botones a sus resoluciones
+resLowBt.addEventListener('click',  () => setResolution(RES_LOW));
 resMedBt.addEventListener('click', () => setResolution(RES_MED));
-resHighBt.addEventListener('click', () => setResolution(RES_HIGH));
+resHighBt.addEventListener('click',() => setResolution(RES_HIGH));
 
+// Cambiar color (Matrix / Blanco)
 greenBt.addEventListener('click', () => {
   green = !green;
   if (green) {
@@ -177,9 +156,9 @@ greenBt.addEventListener('click', () => {
   }
 });
 
+// Copiar el ASCII al portapapeles
 snapBt.addEventListener('click', async () => {
   const asciiText = ascii.textContent;
-
   const formattedText = '```\n' + asciiText + '\n```';
 
   try {
@@ -203,9 +182,9 @@ snapBt.addEventListener('click', async () => {
   }
 });
 
+// Efecto Matrix opcional
 let matrixRainActive = false;
 let raindrops = [];
-
 function applyMatrixEffect() {
   if (!matrixRainActive) return;
 
@@ -221,35 +200,36 @@ function applyMatrixEffect() {
   raindrops.forEach(drop => drop.row++);
 }
 
+// Línea de escaneo verde
 let scanlinePos = 0;
 let scanlineDirection = 1;
-
 function animateScanline() {
   if (!ascii.style.display || ascii.style.display === 'none') return;
 
   scanlinePos += scanlineDirection * 2;
-
   if (scanlinePos >= 100) scanlineDirection = -1;
-  if (scanlinePos <= 0) scanlineDirection = 1;
+  if (scanlinePos <= 0)  scanlineDirection = 1;
 
-  ascii.style.backgroundImage = `linear-gradient(180deg, transparent ${scanlinePos}%, rgba(0,255,0,0.03) ${scanlinePos + 1}%, transparent ${scanlinePos + 2}%)`;
+  ascii.style.backgroundImage =
+    `linear-gradient(180deg, transparent ${scanlinePos}%, rgba(0,255,0,0.03) ${scanlinePos + 1}%, transparent ${scanlinePos + 2}%)`;
 
   requestAnimationFrame(animateScanline);
 }
 
+// Recalcular dimensiones al cambiar el tamaño de ventana
 window.addEventListener('resize', () => {
   if (ascii.style.display !== 'none') {
     updateAsciiSize();
   }
 });
 
+// Efecto glitch aleatorio
 function triggerGlitch() {
   ascii.style.animation = 'flicker-text 0.15s infinite, glitch 0.3s';
   setTimeout(() => {
     ascii.style.animation = 'flicker-text 0.15s infinite';
   }, 300);
 }
-
 setInterval(() => {
   if (ascii.classList.contains('active') && Math.random() > 0.7) {
     triggerGlitch();
