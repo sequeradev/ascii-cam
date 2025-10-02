@@ -14,13 +14,23 @@
   padding: 0;
 }
 
+/*
+ * Use a vertical flex layout for the overall page instead of a CSS grid.
+ * This makes it easier to ensure the main content (the ASCII area and
+ * controls) expands to fill the viewport on mobile devices without
+ * leaving unused space. Setting min-height: 100vh guarantees that the
+ * body always occupies the full viewport height even when the content
+ * is shorter. We avoid grid here because the automatic row sizing
+ * sometimes left a large gap on mobile when the ASCII art element was
+ * initially hidden.
+ */
 html, body {
-  height: 100%;
+  min-height: 100vh;
   background: var(--bg);
   color: var(--txt);
   font-family: var(--font);
-  display: grid;
-  grid-template-rows: auto 1fr auto;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   -webkit-tap-highlight-color: transparent;
 }
@@ -57,11 +67,19 @@ header {
  * is extra vertical space. We remove padding on the top/bottom to
  * avoid unnecessary gaps on mobile and let the elements self‑align.
  */
+/*
+ * The main element flexes to fill the available space between the
+ * header and footer. Using flex-direction: column allows the ASCII
+ * wrapper to grow and the controls to stick to the bottom via
+ * margin-top: auto. We remove any padding here so that the ASCII
+ * wrapper can consume all remaining vertical space.
+ */
 main {
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
-  height: 100%;
   padding: 0;
+  width: 100%;
 }
 
 /*
@@ -257,8 +275,20 @@ main {
   /* no-op: retained for compatibility */
 }
 
+/*
+ * Safari on iOS will not play a video element if it is set to
+ * display: none. Instead, hide it by positioning it off-screen and
+ * giving it minimal size. This keeps it active so that getUserMedia
+ * streams frames correctly while remaining invisible to the user.
+ */
 video {
-  display: none;
+  position: absolute;
+  top: -10000px;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
 }
 
 footer {
@@ -285,7 +315,7 @@ footer a:hover {
      the ASCII area can occupy as much vertical space as possible. */
   main {
     padding: 0;
-    gap: 8px;
+    gap: 4px;
   }
 
   #controls {
