@@ -2,51 +2,42 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
-  <title>ASCII Cam Matrix</title>
-  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Press+Start+2P&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+  <title>ASCII CAM</title>
+  <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
   <header>
-    <h1 id="title">ASCII CAM</h1>
+    <h1 id="title">ASCII_CAM</h1>
   </header>
 
   <main>
-    <div id="controls">
-      <label>Resolution
-        <input id="res" type="range" min="80" max="480" step="20" value="160">
-      </label>
-      <label>Font
-        <select id="fontSelector" class="btn">
-          <option value="DotGothic16">DotGothic16</option>
-          <option value="Press Start 2P">Press Start 2P</option>
-        </select>
-      </label>
-      <label>Char Set
-        <select id="charSetSelector" class="btn">
-          <option value="default">Default</option>
-          <option value="dense">Dense</option>
-          <option value="blocks">Blocks</option>
-        </select>
-      </label>
-      <button id="green" class="btn">Green Mode</button>
-      <button id="snap"  class="btn">Copy Snapshot</button>
-    </div>
-
-    <!-- wrapper flexible para centrar -->
     <div id="asciiWrapper">
       <pre id="ascii"></pre>
     </div>
 
-    <!-- botón solo iOS -->
-    <button id="start" class="btn">Start Camera</button>
+    <div id="controls">
+      <button id="start" class="btn start-btn">START</button>
+
+      <div class="control-group">
+        <label class="control-label">DETAIL</label>
+        <input id="res" type="range" min="40" max="200" step="10" value="80">
+        <span id="resValue" class="value-display">80</span>
+      </div>
+
+      <div class="control-row">
+        <button id="green" class="btn toggle-btn">MATRIX</button>
+        <button id="snap" class="btn action-btn">COPY</button>
+      </div>
+    </div>
+
     <video id="video" autoplay muted playsinline></video>
   </main>
 
   <footer>
-    <small>Created by <a href="https://github.com/monolitro" target="_blank">monolitro</a></small>
+    <a href="https://github.com/monolitro" target="_blank">@monolitro</a>
   </footer>
 
   <script src="script.js"></script>
