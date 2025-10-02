@@ -281,9 +281,11 @@ footer a:hover {
 }
 
 @media (max-width: 600px) {
+  /* On small screens, remove vertical gaps and minimise padding so
+     the ASCII area can occupy as much vertical space as possible. */
   main {
-    padding: 12px 8px 8px 8px;
-    gap: 12px;
+    padding: 0;
+    gap: 8px;
   }
 
   #controls {
