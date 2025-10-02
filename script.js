@@ -45,9 +45,13 @@ startBt.addEventListener('click', initCamera);
 async function initCamera() {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({
+      // Request the front‑facing camera. Avoid specifying aspectRatio
+      // because some browsers (notably Safari on iOS) do not support
+      // that constraint and will fail the request. Leaving it
+      // unspecified allows the browser to choose an appropriate
+      // resolution.
       video: {
-        facingMode: 'user',
-        aspectRatio: 16/9
+        facingMode: 'user'
       }
     });
     video.srcObject = stream;
@@ -74,7 +78,11 @@ async function initCamera() {
 
 function loopASCII() {
   const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  // Use a standard 2D context. Passing the `willReadFrequently` option
+  // can cause Safari on iOS to return `null` because that option is
+  // not yet supported there. The standard context works across all
+  // browsers.
+  const ctx = canvas.getContext('2d');
   canvas.width = canvasWidth;
   canvas.height = canvasHeight;
 
