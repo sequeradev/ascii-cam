@@ -72,21 +72,18 @@ main {
 }
 
 #ascii {
-  display: none;
   white-space: pre;
   user-select: none;
   line-height: 1;
   text-shadow: 0 0 3px currentColor;
   font-family: var(--font);
   color: var(--txt);
-  overflow: hidden;
   animation: flicker-text 0.15s infinite;
-  text-align: center;
-  margin: auto;
+  display: none;
 }
 
 #ascii.active {
-  display: block;
+  display: inline-block;
 }
 
 @keyframes flicker-text {

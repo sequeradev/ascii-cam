@@ -100,11 +100,6 @@ function updateAsciiSize() {
 
   ascii.style.fontSize = fontSize + 'px';
   ascii.style.lineHeight = fontSize + 'px';
-  ascii.style.width = 'auto';
-  ascii.style.height = 'auto';
-  ascii.style.margin = '0';
-  ascii.style.display = 'block';
-  ascii.style.textAlign = 'center';
 }
 
 resRng.addEventListener('input', () => {
