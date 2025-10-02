@@ -87,26 +87,24 @@ function loopASCII() {
 
 function updateAsciiSize() {
   const wrapper = document.getElementById('asciiWrapper');
-  const wrapperWidth = wrapper.clientWidth;
-  const wrapperHeight = wrapper.clientHeight;
+  const wrapperWidth = wrapper.clientWidth * 0.9;
+  const wrapperHeight = wrapper.clientHeight * 0.9;
 
   const charAspectRatio = 0.6;
 
   const fontSizeByWidth = wrapperWidth / (canvasWidth * charAspectRatio);
   const fontSizeByHeight = wrapperHeight / canvasHeight;
 
-  let fontSize = Math.min(fontSizeByWidth, fontSizeByHeight) * 0.95;
-  fontSize = Math.max(3, Math.min(fontSize, 20));
+  let fontSize = Math.min(fontSizeByWidth, fontSizeByHeight);
+  fontSize = Math.max(1, Math.min(fontSize, 30));
 
   ascii.style.fontSize = fontSize + 'px';
   ascii.style.lineHeight = fontSize + 'px';
-
-  const textWidth = canvasWidth * fontSize * charAspectRatio;
-  const textHeight = canvasHeight * fontSize;
-
-  ascii.style.width = textWidth + 'px';
-  ascii.style.height = textHeight + 'px';
-  ascii.style.margin = 'auto';
+  ascii.style.width = 'auto';
+  ascii.style.height = 'auto';
+  ascii.style.margin = '0';
+  ascii.style.display = 'block';
+  ascii.style.textAlign = 'center';
 }
 
 resRng.addEventListener('input', () => {
