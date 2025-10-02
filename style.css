@@ -50,17 +50,18 @@ header {
   }
 }
 
+/*
+ * The main container is a vertical flexbox filling the full
+ * viewport height. The ASCII area will grow to fill available
+ * space, while the controls will stick to the bottom when there
+ * is extra vertical space. We remove padding on the top/bottom to
+ * avoid unnecessary gaps on mobile and let the elements self‑align.
+ */
 main {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  /* Use flex-start so the ascii area can grow naturally while
-     controls sit at the bottom when space allows. Removing
-     space-between prevents large gaps on mobile screens */
-  justify-content: flex-start;
   height: 100%;
-  padding: 16px 8px 8px 8px;
-  gap: 16px;
+  padding: 0;
 }
 
 /*
@@ -72,16 +73,22 @@ main {
  * mobile devices without causing overflow that would require
  * scrolling.
  */
+/*
+ * The wrapper for the ASCII art fills the remaining vertical space
+ * between the header and controls. We use flex-grow so it expands
+ * naturally, and avoid specifying a fixed height; the flexbox
+ * algorithm will allocate the available space. Position relative
+ * allows the inner #ascii element to be absolutely positioned for
+ * centering.
+ */
 #asciiWrapper {
-  flex: 1;
+  flex: 1 1 auto;
   width: 100%;
-  height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
-  overflow: hidden;
   position: relative;
-  min-height: 0;
+  overflow: hidden;
 }
 
 /*
@@ -152,10 +159,9 @@ main {
   flex-direction: column;
   gap: 12px;
   box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
-
-  /* Push the controls to the bottom of the page when there is
-     extra vertical space. This gives the ASCII area priority and
-     helps utilise full screen height on mobile devices. */
+  /* Keep controls anchored at the bottom when extra space is
+     available. On mobile this pushes them down so the ASCII area
+     occupies the top portion of the screen. */
   margin-top: auto;
 }
 
