@@ -30,42 +30,90 @@ let matrixRainActive = false;
 let raindrops = [];
 let animationFrameId = null;
 let resizeTimeout = null;
+let scanlinePos = 0;
+let scanlineDirection = 1;
+let scanlineFrameId = null;
 
 const renderCanvas = document.createElement('canvas');
-const renderContext = renderCanvas.getContext('2d', { willReadFrequently: true });
+const renderContext = renderCanvas.getContext('2d');
 const exportContext = exportCanvas.getContext('2d');
 
-const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+startBt.classList.add('visible');
+startBt.addEventListener('click', initCamera);
 
-if (isIOS || isMobile) {
-  startBt.classList.add('visible');
-  startBt.addEventListener('click', initCamera);
-} else {
-  window.addEventListener('load', initCamera);
+resLowBt.addEventListener('click', () => setResolution(RES_LOW));
+resMedBt.addEventListener('click', () => setResolution(RES_MED));
+resHighBt.addEventListener('click', () => setResolution(RES_HIGH));
+
+greenBt.addEventListener('click', () => {
+  green = !green;
+  syncAsciiTone();
+});
+
+snapBt.addEventListener('click', () => {
+  try {
+    exportAsciiPng();
+    flashButtonLabel(snapBt, 'SAVED!');
+  } catch (err) {
+    alert("Save failed: " + err.message);
+  }
+});
+
+asciiViewport.addEventListener('click', toggleAsciiFullscreen);
+asciiViewport.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault();
+    toggleAsciiFullscreen();
+  }
+});
+
+brightnessInput.addEventListener('input', (event) => {
+  brightness = Number(event.target.value);
+  brightnessValue.textContent = brightness;
+});
+
+contrastInput.addEventListener('input', (event) => {
+  contrast = Number(event.target.value);
+  contrastValue.textContent = contrast;
+});
+
+window.addEventListener('resize', scheduleResizeUpdate);
+document.addEventListener('fullscreenchange', handleFullscreenChange);
+document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+
+if (typeof ResizeObserver !== 'undefined') {
+  const resizeObserver = new ResizeObserver(() => scheduleResizeUpdate());
+  resizeObserver.observe(asciiViewport);
 }
+
+setInterval(() => {
+  if (ascii.classList.contains('active') && Math.random() > 0.7) {
+    triggerGlitch();
+  }
+}, 3000);
 
 async function initCamera() {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({
       video: {
-        facingMode: 'user',
-        aspectRatio: 16/9
+        facingMode: 'user'
       }
     });
+
     video.srcObject = stream;
 
-    await new Promise(resolve => {
+    await new Promise((resolve) => {
       const onLoaded = () => {
         video.removeEventListener('loadedmetadata', onLoaded);
         resolve();
       };
+
       video.addEventListener('loadedmetadata', onLoaded);
       video.play().catch(resolve);
     });
 
     if (video.readyState < 2) {
-      await new Promise(resolve => {
+      await new Promise((resolve) => {
         video.addEventListener('playing', resolve, { once: true });
       });
     }
@@ -76,7 +124,10 @@ async function initCamera() {
     syncCanvasResolution();
     updateAsciiSize();
     loopASCII();
-    setTimeout(() => animateScanline(), 500);
+
+    if (!scanlineFrameId) {
+      scanlineFrameId = requestAnimationFrame(animateScanline);
+    }
   } catch (err) {
     alert("Camera access error:\n" + err.message);
   }
@@ -93,6 +144,10 @@ function loopASCII() {
       return;
     }
 
+    if (renderCanvas.width !== canvasWidth || renderCanvas.height !== canvasHeight) {
+      syncCanvasResolution();
+    }
+
     renderContext.save();
     renderContext.clearRect(0, 0, canvasWidth, canvasHeight);
     renderContext.translate(canvasWidth, 0);
@@ -107,7 +162,9 @@ function loopASCII() {
       const mappedBrightness = getAdjustedBrightness(pix[i], pix[i + 1], pix[i + 2]);
       const charIndex = Math.floor((mappedBrightness / 255) * (CHARS.length - 1));
       out += CHARS[charIndex];
-      if (((i / 4) + 1) % canvasWidth === 0) out += '\n';
+      if (((i / 4) + 1) % canvasWidth === 0) {
+        out += '\n';
+      }
     }
 
     ascii.textContent = out;
@@ -125,7 +182,8 @@ function updateAsciiSize() {
   const fontSizeByWidth = viewportWidth / (canvasWidth * CHAR_ASPECT_RATIO);
   const fontSizeByHeight = viewportHeight / canvasHeight;
   let fontSize = Math.min(fontSizeByWidth, fontSizeByHeight);
-  fontSize = Math.max(1, Math.min(fontSize, 30));
+
+  fontSize = Math.max(4, Math.min(fontSize, 60));
 
   ascii.style.fontSize = fontSize + 'px';
   ascii.style.lineHeight = fontSize + 'px';
@@ -143,35 +201,14 @@ function setResolution(width) {
   resMedBt.classList.remove('active');
   resHighBt.classList.remove('active');
 
-  if (width === RES_LOW) resLowBt.classList.add('active');
-  else if (width === RES_MED) resMedBt.classList.add('active');
-  else if (width === RES_HIGH) resHighBt.classList.add('active');
+  if (width === RES_LOW) {
+    resLowBt.classList.add('active');
+  } else if (width === RES_MED) {
+    resMedBt.classList.add('active');
+  } else if (width === RES_HIGH) {
+    resHighBt.classList.add('active');
+  }
 }
-
-resLowBt.addEventListener('click', () => setResolution(RES_LOW));
-resMedBt.addEventListener('click', () => setResolution(RES_MED));
-resHighBt.addEventListener('click', () => setResolution(RES_HIGH));
-asciiViewport.addEventListener('click', toggleAsciiFullscreen);
-asciiViewport.addEventListener('keydown', (event) => {
-  if (event.key === 'Enter' || event.key === ' ') {
-    event.preventDefault();
-    toggleAsciiFullscreen();
-  }
-});
-
-greenBt.addEventListener('click', () => {
-  green = !green;
-  syncAsciiTone();
-});
-
-snapBt.addEventListener('click', async () => {
-  try {
-    exportAsciiPng();
-    flashButtonLabel(snapBt, 'SAVED!');
-  } catch (err) {
-    alert("Save failed: " + err.message);
-  }
-});
 
 function applyMatrixEffect() {
   if (!matrixRainActive) return;
@@ -184,16 +221,15 @@ function applyMatrixEffect() {
     raindrops.push({ col, row: 0, length: Math.floor(Math.random() * 10) + 5 });
   }
 
-  raindrops = raindrops.filter(drop => drop.row < canvasHeight + drop.length);
-  raindrops.forEach(drop => drop.row++);
+  raindrops = raindrops.filter((drop) => drop.row < canvasHeight + drop.length);
+  raindrops.forEach((drop) => drop.row++);
 }
 
-let scanlinePos = 0;
-let scanlineDirection = 1;
-let scanlineFrameId = null;
-
 function animateScanline() {
-  if (!ascii.classList.contains('active')) return;
+  if (!ascii.classList.contains('active')) {
+    scanlineFrameId = null;
+    return;
+  }
 
   scanlinePos += scanlineDirection * 2;
 
@@ -201,7 +237,6 @@ function animateScanline() {
   if (scanlinePos <= 0) scanlineDirection = 1;
 
   ascii.style.backgroundImage = `linear-gradient(180deg, transparent ${scanlinePos}%, rgba(0,255,0,0.03) ${scanlinePos + 1}%, transparent ${scanlinePos + 2}%)`;
-
   scanlineFrameId = requestAnimationFrame(animateScanline);
 }
 
@@ -214,43 +249,12 @@ function scheduleResizeUpdate() {
   }, 60);
 }
 
-window.addEventListener('resize', scheduleResizeUpdate);
-document.addEventListener('fullscreenchange', handleFullscreenChange);
-document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
-
-if (typeof ResizeObserver !== 'undefined') {
-  const resizeObserver = new ResizeObserver(() => scheduleResizeUpdate());
-  resizeObserver.observe(asciiViewport);
-}
-
 function triggerGlitch() {
   ascii.style.animation = 'flicker-text 0.15s infinite, glitch 0.3s';
   setTimeout(() => {
-    ascii.style.animation = 'flicker-text 0.15s infinite';
+    ascii.style.animation = 'flicker-text 0.18s infinite';
   }, 300);
 }
-
-setInterval(() => {
-  if (ascii.classList.contains('active') && Math.random() > 0.7) {
-    triggerGlitch();
-  }
-}, 3000);
-
-setTimeout(() => {
-  if (ascii.classList.contains('active') && !scanlineFrameId) {
-    animateScanline();
-  }
-}, 1000);
-
-brightnessInput.addEventListener('input', (event) => {
-  brightness = Number(event.target.value);
-  brightnessValue.textContent = brightness;
-});
-
-contrastInput.addEventListener('input', (event) => {
-  contrast = Number(event.target.value);
-  contrastValue.textContent = contrast;
-});
 
 function syncCanvasResolution() {
   renderCanvas.width = canvasWidth;

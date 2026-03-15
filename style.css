@@ -14,8 +14,10 @@
   padding: 0;
 }
 
-html, body {
+html,
+body {
   height: 100%;
+  min-height: 100vh;
   background: var(--bg);
   color: var(--txt);
   font-family: var(--font);
@@ -70,11 +72,12 @@ main {
 #asciiWrapper {
   width: 100%;
   height: min(100%, 72vh);
+  min-height: 0;
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 0;
   position: relative;
+  overflow: hidden;
 }
 
 #asciiViewport {
@@ -145,7 +148,8 @@ main {
 }
 
 @keyframes flicker-text {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -283,7 +287,7 @@ main {
   width: 100%;
   font-size: 22px;
   padding: 16px;
-  display: none;
+  display: block;
 }
 
 .start-btn.visible {
@@ -291,7 +295,13 @@ main {
 }
 
 video {
-  display: none;
+  position: absolute;
+  top: -10000px;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
 }
 
 #exportCanvas {
@@ -337,33 +347,15 @@ body.is-fullscreen #asciiWrapper {
   height: 100vh;
 }
 
-@media (max-width: 600px) {
-  main {
-    padding: 12px 8px;
-  }
-
-  #controls {
-    padding: 12px;
-  }
-
-  .btn {
-    font-size: 16px;
-    padding: 10px 16px;
-  }
-
-  #title {
-    font-size: clamp(20px, 8vw, 32px);
-    letter-spacing: 2px;
-  }
-}
-
 @media (max-width: 900px) {
-  html, body {
+  html,
+  body {
     overflow: auto;
   }
 
   main {
     place-items: start center;
+    padding: 12px 8px;
   }
 
   #appShell {
@@ -379,6 +371,22 @@ body.is-fullscreen #asciiWrapper {
 
   #asciiViewport {
     width: min(100%, 760px);
+  }
+
+  #controls {
+    padding: 12px;
+  }
+}
+
+@media (max-width: 600px) {
+  .btn {
+    font-size: 16px;
+    padding: 10px 16px;
+  }
+
+  #title {
+    font-size: clamp(20px, 8vw, 32px);
+    letter-spacing: 2px;
   }
 }
 
