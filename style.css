@@ -51,24 +51,80 @@ header {
 }
 
 main {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px 16px;
+}
+
+#appShell {
+  width: min(100%, 1120px);
+  min-height: 0;
   height: 100%;
-  padding: 16px 8px 8px 8px;
-  gap: 16px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 420px);
+  align-items: center;
+  gap: 24px;
 }
 
 #asciiWrapper {
-  flex: 1;
   width: 100%;
+  height: min(100%, 72vh);
   display: flex;
   justify-content: center;
   align-items: center;
-  overflow: hidden;
   min-height: 0;
   position: relative;
+}
+
+#asciiViewport {
+  width: min(100%, 720px);
+  aspect-ratio: 16 / 9;
+  display: grid;
+  place-items: center;
+  padding: clamp(12px, 2vw, 24px);
+  border: 2px solid rgba(0, 255, 0, 0.65);
+  background:
+    radial-gradient(circle at top, rgba(0, 255, 0, 0.08), transparent 55%),
+    linear-gradient(180deg, rgba(0, 255, 0, 0.05), rgba(0, 0, 0, 0.45));
+  box-shadow:
+    inset 0 0 24px rgba(0, 255, 0, 0.12),
+    0 0 30px rgba(0, 255, 0, 0.14);
+  overflow: hidden;
+  cursor: zoom-in;
+  transition: box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+#asciiViewport:hover {
+  border-color: rgba(255, 255, 255, 0.85);
+  box-shadow:
+    inset 0 0 24px rgba(0, 255, 0, 0.12),
+    0 0 36px rgba(0, 255, 0, 0.24);
+}
+
+#asciiViewport:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 4px;
+}
+
+#asciiViewport:-webkit-full-screen,
+#asciiViewport:fullscreen {
+  width: 100vw;
+  height: 100vh;
+  aspect-ratio: auto;
+  padding: clamp(16px, 3vw, 40px);
+  border: none;
+  box-shadow: none;
+  background:
+    radial-gradient(circle at top, rgba(0, 255, 0, 0.12), transparent 58%),
+    #000;
+  cursor: zoom-out;
+}
+
+#asciiViewport:-webkit-full-screen #ascii,
+#asciiViewport:fullscreen #ascii {
+  max-width: 100%;
+  max-height: 100%;
 }
 
 #ascii {
@@ -78,8 +134,10 @@ main {
   text-shadow: 0 0 3px currentColor;
   font-family: var(--font);
   color: var(--txt);
-  animation: flicker-text 0.15s infinite;
+  animation: flicker-text 0.18s infinite;
   display: none;
+  transform: translateZ(0);
+  margin: 0 auto;
 }
 
 #ascii.active {
@@ -100,16 +158,16 @@ main {
     transform: translate(0);
   }
   20% {
-    transform: translate(-2px, 2px);
+    transform: translate(-1px, 1px);
   }
   40% {
-    transform: translate(-2px, -2px);
+    transform: translate(-1px, -1px);
   }
   60% {
-    transform: translate(2px, 2px);
+    transform: translate(1px, 1px);
   }
   80% {
-    transform: translate(2px, -2px);
+    transform: translate(1px, -1px);
   }
   100% {
     transform: translate(0);
@@ -118,10 +176,9 @@ main {
 
 #controls {
   width: 100%;
-  max-width: 500px;
   background: var(--panel);
   border: 2px solid var(--border);
-  padding: 16px;
+  padding: 18px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -139,6 +196,20 @@ main {
   letter-spacing: 2px;
   text-transform: uppercase;
   color: var(--accent);
+}
+
+.range-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.value-display {
+  font-size: 20px;
+  min-width: 32px;
+  text-align: right;
+  color: var(--txt-alt);
 }
 
 .res-buttons {
@@ -174,6 +245,13 @@ main {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
+}
+
+.slider {
+  width: 100%;
+  accent-color: var(--accent);
+  cursor: pointer;
+  background: transparent;
 }
 
 .btn {
@@ -216,6 +294,10 @@ video {
   display: none;
 }
 
+#exportCanvas {
+  display: none;
+}
+
 footer {
   background: var(--panel);
   text-align: center;
@@ -235,14 +317,32 @@ footer a:hover {
   text-shadow: 0 0 8px var(--accent);
 }
 
+body.is-fullscreen header,
+body.is-fullscreen footer,
+body.is-fullscreen #controls {
+  display: none;
+}
+
+body.is-fullscreen main {
+  padding: 0;
+}
+
+body.is-fullscreen #appShell {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+body.is-fullscreen #asciiWrapper {
+  height: 100vh;
+}
+
 @media (max-width: 600px) {
   main {
-    padding: 12px 8px 8px 8px;
-    gap: 12px;
+    padding: 12px 8px;
   }
 
   #controls {
-    max-width: 100%;
     padding: 12px;
   }
 
@@ -257,16 +357,38 @@ footer a:hover {
   }
 }
 
+@media (max-width: 900px) {
+  html, body {
+    overflow: auto;
+  }
+
+  main {
+    place-items: start center;
+  }
+
+  #appShell {
+    height: auto;
+    grid-template-columns: 1fr;
+    align-items: start;
+    gap: 16px;
+  }
+
+  #asciiWrapper {
+    height: auto;
+  }
+
+  #asciiViewport {
+    width: min(100%, 760px);
+  }
+}
+
 @media (max-width: 400px) {
   #controls {
     padding: 10px;
   }
 
-  .control-label {
-    font-size: 16px;
-  }
-
+  .control-label,
   .value-display {
-    font-size: 18px;
+    font-size: 16px;
   }
 }

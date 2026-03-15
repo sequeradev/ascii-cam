@@ -8,39 +8,59 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
   <header>
     <h1 id="title">ASCII_CAM</h1>
   </header>
 
   <main>
-    <div id="asciiWrapper">
-      <pre id="ascii"></pre>
-    </div>
-
-    <div id="controls">
-      <button id="start" class="btn start-btn">START</button>
-
-      <div class="control-group">
-        <label class="control-label">RESOLUTION</label>
-        <div class="res-buttons">
-          <button id="resLow" class="btn res-btn">LOW</button>
-          <button id="resMed" class="btn res-btn active">MEDIUM</button>
-          <button id="resHigh" class="btn res-btn">HIGH</button>
+    <section id="appShell">
+      <div id="asciiWrapper">
+        <div id="asciiViewport" title="Click to toggle fullscreen" role="button" tabindex="0" aria-label="Toggle ASCII camera fullscreen">
+          <pre id="ascii"></pre>
         </div>
       </div>
 
-      <div class="control-row">
-        <button id="green" class="btn toggle-btn">MATRIX</button>
-        <button id="snap" class="btn action-btn">COPY</button>
+      <div id="controls">
+        <button id="start" class="btn start-btn">START</button>
+
+        <div class="control-group">
+          <label class="control-label">RESOLUTION</label>
+          <div class="res-buttons">
+            <button id="resLow" class="btn res-btn">LOW</button>
+            <button id="resMed" class="btn res-btn active">MEDIUM</button>
+            <button id="resHigh" class="btn res-btn">HIGH</button>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <div class="range-header">
+            <label class="control-label" for="brightness">BRIGHTNESS</label>
+            <span id="brightnessValue" class="value-display">0</span>
+          </div>
+          <input id="brightness" class="slider" type="range" min="-80" max="80" value="0" step="1">
+        </div>
+
+        <div class="control-group">
+          <div class="range-header">
+            <label class="control-label" for="contrast">CONTRAST</label>
+            <span id="contrastValue" class="value-display">0</span>
+          </div>
+          <input id="contrast" class="slider" type="range" min="-80" max="80" value="0" step="1">
+        </div>
+
+        <div class="control-row">
+          <button id="green" class="btn toggle-btn">WHITE</button>
+          <button id="snap" class="btn action-btn">SAVE PNG</button>
+        </div>
       </div>
-    </div>
+    </section>
 
     <video id="video" autoplay muted playsinline></video>
+    <canvas id="exportCanvas" aria-hidden="true"></canvas>
   </main>
 
   <footer>
-    <a href="https://github.com/monolitro" target="_blank">@monolitro</a>
+    <a href="https://github.com/sequeradev" target="_blank">@sequeradev</a>
   </footer>
 
   <script src="script.js"></script>
