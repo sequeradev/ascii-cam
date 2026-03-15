@@ -5,7 +5,7 @@ Minimalista, responsive y ahora con brillo, contraste, captura PNG y modo fullsc
 
 ## Demo online
 
-[Abrir demo actualizada](https://sequeradev.github.io/ascii-cam/)
+[Abrir demo actualizada](https://sequeradev.github.io/ascii-cam/?v=20260315-landing)
 
 ## Como usarlo localmente
 
